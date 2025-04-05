@@ -9,7 +9,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := yagaoperator
-LOCAL_SRC_FILES := operator/main.cpp
+LOCAL_SRC_FILES := operator/main.cpp operator/utils.cpp operator/utils.h operator/jniNativeMethod.h operator/jniNativeMethod.cpp
 LOCAL_STATIC_LIBRARIES := libcxx libxhook
 LOCAL_LDLIBS := -llog
 include $(BUILD_SHARED_LIBRARY)

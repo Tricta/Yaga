@@ -8,8 +8,8 @@
 
 #include "nativeBridgeStructs.h"
 
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "Zygote Injection", __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "Zygote Injection", __VA_ARGS__)
+#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "Yaga", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "Yaga", __VA_ARGS__)
 
 #ifdef __LP64__
 constexpr const char* zygoteName = "zygote64";
