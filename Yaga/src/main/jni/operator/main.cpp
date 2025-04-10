@@ -21,8 +21,10 @@
 #endif
 
 static int init_called = 0;
-static JNINativeMethod gMethods[] = {{NULL, NULL, NULL}};
+static JNINativeMethod gMethods[] = {{NULL, NULL, NULL},{NULL, NULL, NULL},{NULL, NULL, NULL}};
 void *_nativeForkAndSpecialize = NULL;
+void *_nativeForkSystemServer = NULL;
+void *_nativeSpecializeAppProcess = NULL;
 
 JNINativeMethod *search_method(int endian, std::vector<std::pair<uintptr_t, uintptr_t>> addresses, const char *name, size_t len) {
     //search for name
@@ -150,10 +152,12 @@ NEW_FUNC_DEF(int, _ZN7android39register_com_android_internal_os_ZygoteEP7_JNIEnv
             }
             close(fd);
 
-            JNINativeMethod *method[1];
+            JNINativeMethod *method[3];
             method[0] = search_method(endian, addresses, "nativeForkAndSpecialize", strlen("nativeForkAndSpecialize") + 1);
+            method[1] = search_method(endian, addresses, "nativeForkSystemServer", strlen("nativeForkSystemServer") + 1);
+            method[2] = search_method(endian, addresses, "nativeSpecializeAppProcess", strlen("nativeSpecializeAppProcess") + 1);
         
-            if (!method[0]) {
+            if (!method[0] || !method[1] || !method[2]) {
                 LOGE("JNI Native Method not found.");
                 return 0;
             }
@@ -164,15 +168,25 @@ NEW_FUNC_DEF(int, _ZN7android39register_com_android_internal_os_ZygoteEP7_JNIEnv
             gMethods[0].name = method[0]->name;
             gMethods[0].signature = method[0]->signature;
 
+            _nativeForkSystemServer = method[1]->fnPtr;
+            gMethods[1].fnPtr = (void *) nativeForkSystemServer;
+            gMethods[1].name = method[1]->name;
+            gMethods[1].signature = method[1]->signature;
+
+            _nativeSpecializeAppProcess = method[2]->fnPtr;
+            gMethods[2].fnPtr = (void *) nativeSpecializeAppProcess;
+            gMethods[2].name = method[2]->name;
+            gMethods[2].signature = method[2]->signature;
+
             //replace zygote methods
             init_called = 1;
 
-            jint res = env->RegisterNatives(clazz, gMethods, 1);
+            jint res = env->RegisterNatives(clazz, gMethods, 3);
             if (res != JNI_OK) {
                 LOGE("RegisterNatives failed");
                 return 0;
             } else {
-                LOGI("replaced com.android.internal.os.Zygote#nativeForkAndSpecialize");
+                LOGI("replaced com.android.internal.os.Zygote and simbols");
             }
         }
     }
