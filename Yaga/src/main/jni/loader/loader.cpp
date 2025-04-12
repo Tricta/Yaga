@@ -58,50 +58,36 @@ __attribute__((constructor)) __attribute__((used)) void OnLoad() {
     LOGI("Code loaded in %s process, pid=%d uid=%d", is_zygote() ? "zygote" : "non-zygote", getpid(), getuid());
     dlopen(LIB_PATH "libyagaoperator.so", 0);
 
-    char buf[PATH_MAX]{0};
-    int fd = open("/data/adb/yagaModule/native_bridge", O_RDONLY);
-    if (fd == -1) {
-        LOGE("access /data/adb/yagaModule/native_bridge failed!");
+    #if defined(__i386__) || defined(__x86_64__)
+    char native_bridge[PATH_MAX] = "libndk_translation.so";
+    size_t size = strlen(native_bridge);
+
+    LOGI("original native bridge: %s", native_bridge);
+    if (native_bridge[0] == '0' && native_bridge[1] == '\0') {
         return;
     }
 
-    auto size = read(fd, buf, PATH_MAX);
-    close(fd);
+    char native_bridge_full_path[PATH_MAX];
+    snprintf(native_bridge_full_path, sizeof(native_bridge_full_path), "%s%s", LIB_PATH, native_bridge);
 
-    if (size <= 0) {
-        LOGE("can't read native_bridge");
+    if (access(native_bridge_full_path, F_OK) != 0) {
+        LOGE("access %s", native_bridge_full_path);
         return;
     }
-
-    buf[size] = 0;
-    if (size > 1 && buf[size - 1] == '\n') buf[size - 1] = 0;
-    LOGI("original native bridge: %s", buf);
-
-    if (buf[0] == '0' && buf[1] == 0) {
-        return;
-    }
-
-    auto native_bridge = buf + size + 1;
-    strcpy(native_bridge, LIB_PATH);
-    strncat(native_bridge, buf, size);
-
-    if (access(native_bridge, F_OK) != 0) {
-        LOGE("access %s", native_bridge);
-        return;
-    }
-
-    original_bridge = dlopen(native_bridge, RTLD_NOW);
+    
+    original_bridge = dlopen(native_bridge_full_path, RTLD_NOW);
     if (original_bridge == nullptr) {
         LOGE("dlopen failed: %s", dlerror());
         return;
     }
-
+    
     auto original_NativeBridgeItf = dlsym(original_bridge, "NativeBridgeItf");
     if (original_NativeBridgeItf == nullptr) {
         LOGE("dlsym failed: %s", dlerror());
         return;
     }
-
+    
     auto callbacks_size = sizeof(NativeBridgeCallbacks);
     memcpy(NativeBridgeItf, original_NativeBridgeItf, callbacks_size);
+    #endif
 }

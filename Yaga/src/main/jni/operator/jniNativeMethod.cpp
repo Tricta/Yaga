@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "jniNativeMethod.h"
 
@@ -19,14 +20,6 @@ void nativeForkAndSpecialize_pre(JNIEnv *env, jclass clazz, jint uid, jint gid,
     jstring instructionSet, jstring appDataDir) {
     
     LOGI("forkAndSpecializePre");
-}
-
-void* my_thread_func(void* args) {
-    while (1) {
-        LOGI("TEST MTF!!!");
-        sleep(1);
-    }
-    return NULL;
 }
 
 void nativeForkAndSpecialize_post(JNIEnv *env, jclass clazz, jint uid, jint res) {
@@ -95,8 +88,25 @@ static void nativeSpecializeAppProcess_pre(
     LOGI("nativeSpecializeAppProcess_pre");
 }
 
-static void nativeSpecializeAppProcess_post(JNIEnv *env, jclass clazz) {
+jmethodID _methodId = NULL;
+
+static jboolean hook_isRoot(JNIEnv *env, jclass clazz) {
+    LOGI("isRoot() method is called");
+    jboolean result = env->CallStaticBooleanMethod(clazz, _methodId);
+
+    LOGI("isRoot() returned: %d", result);
+
+    return result;
+}
+
+
+static void nativeSpecializeAppProcess_post(JNIEnv *env, jclass clazz, jstring niceName) {
     LOGI("nativeSpecializeAppProcess_post");
+
+    const char* packageNameChars = env->GetStringUTFChars(niceName, nullptr);
+    LOGI("App package name: %s", packageNameChars);
+
+    env->ReleaseStringUTFChars(niceName, packageNameChars);
 }
 
 void nativeSpecializeAppProcess(
@@ -115,5 +125,5 @@ void nativeSpecializeAppProcess(
             startChildZygote, instructionSet, appDataDir, packageName, packagesForUID,
             sandboxId);
 
-    nativeSpecializeAppProcess_post(env, clazz);
+    nativeSpecializeAppProcess_post(env, clazz, niceName);
 }
