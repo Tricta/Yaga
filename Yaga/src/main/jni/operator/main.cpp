@@ -10,9 +10,7 @@
 #include "libxhook/xhook.h"
 #include "utils.h"
 #include "jniNativeMethod.h"
-
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, "Yaga", __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "Yaga", __VA_ARGS__)
+#include "../logUtils.h"
 
 #ifdef __LP64__
 #define ANDROID_RUNTIME_LIBRARY "/system/lib64/libandroid_runtime.so"
@@ -25,61 +23,6 @@ static JNINativeMethod gMethods[] = {{NULL, NULL, NULL},{NULL, NULL, NULL},{NULL
 void *_nativeForkAndSpecialize = NULL;
 void *_nativeForkSystemServer = NULL;
 void *_nativeSpecializeAppProcess = NULL;
-
-JNINativeMethod *search_method(int endian, std::vector<std::pair<uintptr_t, uintptr_t>> addresses, const char *name, size_t len) {
-    //search for name
-    uintptr_t str_addr = 0;
-    for (auto address : addresses) {
-        void *res = memsearch(address.first, address.second, (const void *) name, len);
-        if (res) {
-            str_addr = (uintptr_t) res;
-
-            #ifdef __LP64__
-            LOGI("found \"%s\" at 0x%lx", (char *) str_addr, str_addr);
-            #else
-            LOGI("found \"%s\" at 0x%x", (char *) str_addr, str_addr);
-            #endif
-
-            break;
-        }
-    }
-
-    if (!str_addr) {
-        LOGE("\" %s \" not found.", name);
-        return NULL;
-    }
-
-    // search JNINativeMethod struct by address
-    size_t size = sizeof(uintptr_t);
-    unsigned char *data = new unsigned char[size];
-
-    for (size_t i = 0; i < size; i++)
-    data[endian == ELFDATA2LSB ? i : size - i - 1] = (unsigned char) (
-            ((uintptr_t) 0xff << i * 8 & str_addr) >> i * 8);
-
-    JNINativeMethod *method = NULL;
-    for (auto address : addresses) {
-        void *res = memsearch(address.first, address.second, data, size);
-        if (res) {
-            method = (JNINativeMethod *) res;
-
-            #ifdef __LP64__
-            LOGI("found {\"%s\", \"%s\", %p} at 0x%lx", method->name, method->signature,
-                method->fnPtr, (uintptr_t) method);
-            #else
-            LOGI("found {\"%s\", \"%s\", %p} at 0x%x", method->name, method->signature,
-                method->fnPtr, (uintptr_t) method);
-            #endif
-
-            break;
-        }
-    }
-    if (!method) {
-        LOGE("%s not found.", name);
-        return NULL;
-    }
-    return method;
-}
 
 #define XHOOK_REGISTER(PATH_REGEX, NAME) \
     if (xhook_register(PATH_REGEX, #NAME, (void*) new_##NAME, (void **) &old_##NAME) == 0) \
@@ -147,7 +90,12 @@ NEW_FUNC_DEF(int, _ZN7android39register_com_android_internal_os_ZygoteEP7_JNIEnv
         
                 if (strcmp(ANDROID_RUNTIME_LIBRARY, filename) == 0) {
                     addresses.push_back(std::pair<uintptr_t, uintptr_t>(start, end));
+                    
+                    #if __LP64__
                     LOGI("%lx %lx %s %s", start, end, flags, filename);
+                    #else
+                    LOGI("%x %x %s %s", start, end, flags, filename);
+                    #endif
                 }
             }
             close(fd);

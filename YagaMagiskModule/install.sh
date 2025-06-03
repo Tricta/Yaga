@@ -1,7 +1,7 @@
 SKIPMOUNT=false
 PROPFILE=false
 POSTFSDATA=true
-LATESTARTSERVICE=false
+LATESTARTSERVICE=true
 REPLACE=""
 
 print_modname(){

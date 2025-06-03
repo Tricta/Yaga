@@ -1,2 +1,0 @@
-# enter /data/adb
-allow zygote adb_data_file dir search;
