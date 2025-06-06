@@ -9,20 +9,10 @@
 
 #include "jniNativeMethod.h"
 #include "libxhook/xhook.h"
-#include "utils.h"
 #include "dobby/dobby.h"
 #include "libartHook.h"
 #include "artMethodHooking.h"
 #include "../logUtils.h"
-
-#define pointer_size sizeof(void*)
-#define roundUpToPtrSize(v) (v + pointer_size - 1 - ((v + pointer_size - 1) & (pointer_size - 1)))
-
-#ifdef __LP64__
-#define LIBART "/apex/com.android.art/lib64/libart.so"
-#else
-#define LIBART "/apex/com.android.art/lib/libart.so"
-#endif
 
 void nativeForkAndSpecialize_pre(JNIEnv *env, jclass clazz, jint uid, jint gid,
     jintArray gids,
