@@ -32,15 +32,15 @@ NEW_FUNC_DEF(int, _ZN7android14AndroidRuntime21registerNativeMethodsEP7_JNIEnvPK
         method = methods[i];
 
         if (strcmp("com/android/internal/os/Zygote", className) == 0) {
-            if (strcmp(method.name, "nativeForkAndSpecialize") == 0) {
+            if (strcmp(method.name, "nativeForkAndSpecialize") == 0 && strcmp(method.signature, nativeForkAndSpecialize_p_sig) == 0) {
                 _nativeForkAndSpecialize = method.fnPtr;
                 newMethods[i].fnPtr = (void *) nativeForkAndSpecialize_p;
                 LOGI("replaced nativeForkAndSpecialize");
-            } else if (strcmp(method.name, "nativeSpecializeAppProcess") == 0) {
+            } else if (strcmp(method.name, "nativeSpecializeAppProcess") == 0 && strcmp(method.signature, nativeSpecializeAppProcess_sig) == 0) {
                 _nativeSpecializeAppProcess = method.fnPtr;
                 newMethods[i].fnPtr = (void *) nativeSpecializeAppProcess;
                 LOGI("replaced nativeSpecializeAppProcess");
-            } else if (strcmp(method.name, "nativeForkSystemServer") == 0) {
+            } else if (strcmp(method.name, "nativeForkSystemServer") == 0 && strcmp(method.signature, nativeForkSystemServer_sig) == 0) {
                 _nativeForkSystemServer = method.fnPtr;
                 newMethods[i].fnPtr = (void *) nativeForkSystemServer;
                 LOGI("replaced nativeForkSystemServer");
@@ -48,7 +48,7 @@ NEW_FUNC_DEF(int, _ZN7android14AndroidRuntime21registerNativeMethodsEP7_JNIEnvPK
         }
     }
 
-    return old__ZN7android14AndroidRuntime21registerNativeMethodsEP7_JNIEnvPKcPK15JNINativeMethodi(env, className, newMethods.get(), numMethods);;
+    return old__ZN7android14AndroidRuntime21registerNativeMethodsEP7_JNIEnvPKcPK15JNINativeMethodi(env, className, newMethods.get(), numMethods);
 }
 
 __attribute__((constructor)) __attribute__((used)) void OnLoad() {

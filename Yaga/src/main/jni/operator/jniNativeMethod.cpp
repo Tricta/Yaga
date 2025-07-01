@@ -12,6 +12,8 @@
 #include "dobby/dobby.h"
 #include "libartHook.h"
 #include "artMethodHooking.h"
+#include "nativeHooking.h"
+#include "global.h"
 #include "../logUtils.h"
 
 void nativeForkAndSpecialize_pre(JNIEnv *env, jclass clazz, jint uid, jint gid,
@@ -142,6 +144,17 @@ static void nativeSpecializeAppProcess_post(JNIEnv *env, jclass clazz, jstring n
             } else {
                 LOGE("doCall hook failed for: %s", doCallSymbols[i]);
             }
+        }
+
+        void* android_dlopen_extSym = DobbySymbolResolver(nullptr, "android_dlopen_ext");
+        if (android_dlopen_extSym) {
+            if (DobbyHook(android_dlopen_extSym, (void*)hooked_android_dlopen_ext, (void**)&orig_android_dlopen_ext) == 0) {
+                LOGI("Hooked android_dlopen_ext");
+            } else {
+                LOGE("Failed hooking android_dlopen_ext");
+            }
+        } else {
+            LOGE("Failed to resolve android_dlopen_ext symbol");
         }
     }
 }

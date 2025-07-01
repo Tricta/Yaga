@@ -4,8 +4,6 @@
 
 extern int (*orig_doCall[4])(artMethod*, void*, void*, void*, int, void*);
 extern std::string(*orig_PrettyMethod)(void*, bool);
-extern JavaVM* g_vm;
-extern const char* g_appDataDirChars;
 
 int hooked_doCall_0(artMethod* a, void* b, void* c, void* d, int e, void* f);
 int hooked_doCall_1(artMethod* a, void* b, void* c, void* d, int e, void* f);

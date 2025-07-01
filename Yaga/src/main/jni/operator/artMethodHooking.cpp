@@ -3,26 +3,11 @@
 #include <jni.h>
 #include <android/log.h>
 
+#include "global.h"
 #include "../logUtils.h"
 
 int (*orig_doCall[4])(artMethod* arg1, void* arg2, void* arg3, void* arg4, int arg5, void* arg6) = {nullptr, nullptr, nullptr, nullptr};
 std::string(*orig_PrettyMethod)(void* arg1, bool arg2) = nullptr;
-JavaVM* g_vm = nullptr;
-const char* g_appDataDirChars = nullptr;
-
-static JNIEnv* GetEnv() {
-    if (!g_vm) {
-        LOGE("JavaVM is null");
-        return nullptr;
-    }
-
-    JNIEnv* env = nullptr;
-    if (g_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) != JNI_OK) {
-        LOGE("Failed to get JNIEnv");
-        return nullptr;
-    }
-    return env;
-}
 
 std::string PrettyMethod(void* arg1, bool arg2){
     return orig_PrettyMethod(arg1, arg2);
