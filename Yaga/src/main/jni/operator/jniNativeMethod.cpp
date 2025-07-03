@@ -139,7 +139,9 @@ static void nativeSpecializeAppProcess_post(JNIEnv *env, jclass clazz, jstring n
             unsigned long int doCallAddr;
             if (find_name(doCallSymbols[i], "libart.so", &doCallAddr) < 0) {
                 LOGI("can't find: %s", doCallSymbols[i]);
-            } else if (DobbyHook((void*)doCallAddr, trampolines[i], (void**)&orig_doCall[i]) == 0) {
+            } 
+            
+            if (DobbyHook((void*)doCallAddr, trampolines[i], (void**)&orig_doCall[i]) == 0) {
                 LOGI("doCall hook successful for: %s", doCallSymbols[i]);
             } else {
                 LOGE("doCall hook failed for: %s", doCallSymbols[i]);
