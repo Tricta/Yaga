@@ -55,7 +55,7 @@ Having a mobile with a Root Manager, like Magisk, you just need to install the m
 ## 🚀 PoC <a name="poc"></a>
 
 <div align="center">
-  <video src="./gitResources/PoC.mp4" controls width="600"></video>
+  <img src="./gitResources/PoC.gif" alt="PoC demo" width="600">
 </div>
 
 ## 🎉 Acknowledgements <a name = "acknowledgement"></a>
