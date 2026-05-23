@@ -1,0 +1,3 @@
+[submodule "Yaga/src/main/jni/libxhook"]
+	path = Yaga/src/main/jni/libxhook
+	url = https://github.com/iqiyi/xHook.git

@@ -8,12 +8,7 @@
 #include <vector>
 
 #include "jniNativeMethod.h"
-#include "libxhook/xhook.h"
-#include "dobby/dobby.h"
-#include "libartHook.h"
-#include "artMethodHooking.h"
-#include "nativeHooking.h"
-#include "global.h"
+#include "xhook.h"
 #include "../logUtils.h"
 
 void nativeForkAndSpecialize_pre(JNIEnv *env, jclass clazz, jint uid, jint gid,
@@ -102,63 +97,8 @@ static void nativeSpecializeAppProcess_post(JNIEnv *env, jclass clazz, jstring n
     LOGI("App package name: %s", packageNameChars);
     LOGI("App data dir: %s", appDataDirChars);
 
-    if (strcmp(packageNameChars, "com.example.dummy3") == 0) {
-        if (!g_vm) {
-            env->GetJavaVM(&g_vm);
-            LOGI("Cached JavaVM: %p", g_vm);
-        }
-
-        if(!g_appDataDirChars){
-            g_appDataDirChars = appDataDirChars;
-            LOGI("Cached appDataDirChars: %p", g_appDataDirChars);
-        }
-
-        unsigned long int PrettyMethodAddr;
-
-        if (find_name("_ZN3art9ArtMethod12PrettyMethodEPS0_b", "libart.so", &PrettyMethodAddr) < 0) {
-            LOGI("can't find: _ZN3art9ArtMethod12PrettyMethodEPS0_b");
-            return;
-        }
-
-        if (DobbyHook((void*)PrettyMethodAddr, (void*)PrettyMethod, (void**)&orig_PrettyMethod) == 0) {
-            LOGI("PrettyMethod hook successful!");
-        } else {
-            LOGE("PrettyMethod hook failed.");
-        }
-
-        char* doCallSymbols[4] = {
-            "_ZN3art11interpreter6DoCallILb0ELb0EEEbPNS_9ArtMethodEPNS_6ThreadERNS_11ShadowFrameEPKNS_11InstructionEtPNS_6JValueE",
-            "_ZN3art11interpreter6DoCallILb0ELb1EEEbPNS_9ArtMethodEPNS_6ThreadERNS_11ShadowFrameEPKNS_11InstructionEtPNS_6JValueE",
-            "_ZN3art11interpreter6DoCallILb1ELb0EEEbPNS_9ArtMethodEPNS_6ThreadERNS_11ShadowFrameEPKNS_11InstructionEtPNS_6JValueE",
-            "_ZN3art11interpreter6DoCallILb1ELb1EEEbPNS_9ArtMethodEPNS_6ThreadERNS_11ShadowFrameEPKNS_11InstructionEtPNS_6JValueE"
-        };
-
-        void* trampolines[] = { (void*)hooked_doCall_0, (void*)hooked_doCall_1, (void*)hooked_doCall_2, (void*)hooked_doCall_3 };
-
-        for (int i = 0; i < 4; ++i) {
-            unsigned long int doCallAddr;
-            if (find_name(doCallSymbols[i], "libart.so", &doCallAddr) < 0) {
-                LOGI("can't find: %s", doCallSymbols[i]);
-            } 
-            
-            if (DobbyHook((void*)doCallAddr, trampolines[i], (void**)&orig_doCall[i]) == 0) {
-                LOGI("doCall hook successful for: %s", doCallSymbols[i]);
-            } else {
-                LOGE("doCall hook failed for: %s", doCallSymbols[i]);
-            }
-        }
-
-        void* android_dlopen_extSym = DobbySymbolResolver(nullptr, "android_dlopen_ext");
-        if (android_dlopen_extSym) {
-            if (DobbyHook(android_dlopen_extSym, (void*)hooked_android_dlopen_ext, (void**)&orig_android_dlopen_ext) == 0) {
-                LOGI("Hooked android_dlopen_ext");
-            } else {
-                LOGE("Failed hooking android_dlopen_ext");
-            }
-        } else {
-            LOGE("Failed to resolve android_dlopen_ext symbol");
-        }
-    }
+    env->ReleaseStringUTFChars(niceName, packageNameChars);
+    env->ReleaseStringUTFChars(appDataDir, appDataDirChars);
 }
 
 void nativeSpecializeAppProcess(

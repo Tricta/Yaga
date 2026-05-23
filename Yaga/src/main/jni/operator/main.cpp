@@ -7,7 +7,7 @@
 #include <android/log.h>
 #include <vector>
 
-#include "libxhook/xhook.h"
+#include "xhook.h"
 #include "jniNativeMethod.h"
 #include "../logUtils.h"
 
